@@ -322,6 +322,9 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
          * @return this builder
          */
         public Builder maxLineLength(int maxLineLength) {
+            if (maxLineLength <= 0) {
+                throw new IllegalArgumentException("maxLineLength must be greater than zero");
+            }
             this.maxLineLength = maxLineLength;
             return this;
         }

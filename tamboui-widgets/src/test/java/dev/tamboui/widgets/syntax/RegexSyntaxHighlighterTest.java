@@ -255,6 +255,14 @@ class RegexSyntaxHighlighterTest {
     }
 
     @Test
+    @DisplayName("the maximum line length must be positive")
+    void maximumLineLengthMustBePositive() {
+        assertThatThrownBy(() -> RegexSyntaxHighlighter.builder().maxLineLength(0))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("maxLineLength must be greater than zero");
+    }
+
+    @Test
     @DisplayName("lines longer than the configured cap fall back to plain rendering")
     void overLongLinesFallBackToPlain() {
         int cap = 16;
