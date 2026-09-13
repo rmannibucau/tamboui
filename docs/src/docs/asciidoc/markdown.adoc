@@ -228,8 +228,9 @@ definition lives in `dev.tamboui.widgets.syntax`:
 * `TokenType` — the semantic categories (`KEYWORD`, `STRING`, `NUMBER`,
   `COMMENT`, `FUNCTION`, `TYPE`, ...). `PLAIN` maps to the base code style.
 * `SyntaxTheme` — maps `TokenType` to a `Style`. The default
-  (`SyntaxTheme.DEFAULTS`) is a light-on-dark palette. Override individual
-  token colors with the builder.
+  (`SyntaxTheme.DEFAULTS`) is a light-on-dark palette. `builder()` starts with
+  that palette; use `token()` to replace entries or `clear()` to make tokens
+  inherit the enclosing code-block style.
 * `Grammar` — a declarative language definition: an id, aliases, and rules
   (`pattern`, `literal`, `multiline` for block comments / triple-quoted
   strings).
@@ -239,7 +240,8 @@ definition lives in `dev.tamboui.widgets.syntax`:
   regex-based built-in.
 * `RegexSyntaxHighlighter` — built-in grammars for `java`, `kotlin`,
   `javascript`, `typescript`, `python`, `json`, `xml` (incl. `html`), `css`,
-  `bash`, `yaml`, `sql`, `go`, and `rust`. `RegexSyntaxHighlighter.defaults()`
+  `bash`, `yaml`, `properties`, `sql`, `go`, and `rust`.
+  `RegexSyntaxHighlighter.defaults()`
   uses these; `.of(grammar...)` / `.builder()` let you add or replace grammars.
 
 Highlighting combines a base, token, and theme style: each token is rendered

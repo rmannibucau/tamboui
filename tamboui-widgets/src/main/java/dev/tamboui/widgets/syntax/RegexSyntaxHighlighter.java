@@ -61,7 +61,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
     /**
      * Returns the highlighter covering the built-in languages: Java, Kotlin,
      * JavaScript, TypeScript, Python, JSON, XML/HTML, CSS, Bash/Shell, YAML,
-     * SQL, Go and Rust, each with its common aliases.
+     * properties, SQL, Go and Rust, each with its common aliases.
      *
      * @return the default highlighter
      */

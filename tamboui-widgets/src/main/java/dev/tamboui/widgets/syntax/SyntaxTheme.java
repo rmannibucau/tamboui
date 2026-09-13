@@ -14,11 +14,12 @@ import dev.tamboui.style.Style;
  * same spirit as a highlight.js or VS Code theme. Each {@link TokenType} maps
  * to a {@link Style} (typically just a foreground {@link Color}). A token whose
  * style the theme does not override falls back to the enclosing code-block
- * style, so themes can be sparse.
+ * style.
  *
- * <p>An instance is immutable and can be shared. Build a customized theme with
- * {@link #builder()} starting from {@link #DEFAULTS} when a tailored look is
- * wanted:
+ * <p>An instance is immutable and can be shared. {@link #builder()} starts with
+ * the default palette; customize entries with {@link Builder#token(TokenType, Style)}
+ * or remove them with {@link Builder#clear(TokenType)} so those tokens inherit
+ * the enclosing style:
  * <pre>{@code
  * SyntaxTheme theme = SyntaxTheme.builder()
  *     .token(TokenType.KEYWORD, Style.EMPTY.fg(Color.RED).bold())
@@ -30,8 +31,9 @@ public final class SyntaxTheme {
 
     /**
      * The default theme, a dark, high-contrast palette inspired by common
-     * IDE defaults (One Dark / Dark+). Every {@link TokenType} gets a
-     * distinct foreground color; none carries a modifier.
+     * IDE defaults (One Dark / Dark+). {@link TokenType#PLAIN} inherits the
+     * enclosing style, while semantic token types receive foreground colors;
+     * comments are also italicized.
      */
     public static final SyntaxTheme DEFAULTS = builder().build();
 

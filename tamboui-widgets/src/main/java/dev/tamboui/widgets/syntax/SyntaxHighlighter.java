@@ -29,12 +29,12 @@ public interface SyntaxHighlighter {
     /**
      * Highlights {@code code}, which must contain only the code lines, into
      * one {@link Line} per source line. The returned lines may carry multiple
-     * spans with distinct styles; texat not matched by a grammar keeps the
+     * spans with distinct styles; text not matched by a grammar keeps the
      * given {@code base} style.
      *
      * @param code the raw snippet, possibly multi-line
-     * @param language the fenced-block info string (e.g. {@code java}), or the
-     *        empty string when unknown; may be {@code null}
+     * @param language the language identifier or alias (e.g. {@code java}), or
+     *        the empty string when unknown; may be {@code null}
      * @param base the style applied to non-tokenized text (generally the
      *        code-block style)
      * @param theme the palette mapping token types to styles
