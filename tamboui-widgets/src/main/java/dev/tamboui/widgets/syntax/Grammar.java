@@ -81,12 +81,14 @@ public final class Grammar {
         private final Pattern pattern;
         private final String open;
         private final String close;
+        private final boolean lineStart;
 
-        private Rule(TokenType type, Pattern pattern, String open, String close) {
+        private Rule(TokenType type, Pattern pattern, String open, String close, boolean lineStart) {
             this.type = type;
             this.pattern = pattern;
             this.open = open;
             this.close = close;
+            this.lineStart = lineStart;
         }
 
         /**
@@ -98,7 +100,23 @@ public final class Grammar {
          */
         public static Rule pattern(TokenType type, Pattern pattern) {
             return new Rule(Objects.requireNonNull(type, "type"),
-                Objects.requireNonNull(pattern, "pattern"), null, null);
+                Objects.requireNonNull(pattern, "pattern"), null, null, false);
+        }
+
+        /**
+         * Creates a single-line rule that is only attempted at the start of a
+         * line (the first position of the input or right after a newline).
+         * Use this for line-oriented syntax such as properties keys or
+         * indentation-sensitive keys, which plain patterns cannot express
+         * because rules are matched at every position.
+         *
+         * @param type the token type
+         * @param pattern the regex matched against the source from the line start
+         * @return a new rule
+         */
+        public static Rule linePattern(TokenType type, Pattern pattern) {
+            return new Rule(Objects.requireNonNull(type, "type"),
+                Objects.requireNonNull(pattern, "pattern"), null, null, true);
         }
 
         /**
@@ -125,7 +143,7 @@ public final class Grammar {
          */
         public static Rule multiline(TokenType type, String open, String close) {
             return new Rule(Objects.requireNonNull(type, "type"), null,
-                Objects.requireNonNull(open, "open"), Objects.requireNonNull(close, "close"));
+                Objects.requireNonNull(open, "open"), Objects.requireNonNull(close, "close"), false);
         }
 
         TokenType type() {
@@ -146,6 +164,10 @@ public final class Grammar {
 
         boolean multiline() {
             return open != null;
+        }
+
+        boolean lineStart() {
+            return lineStart;
         }
     }
 

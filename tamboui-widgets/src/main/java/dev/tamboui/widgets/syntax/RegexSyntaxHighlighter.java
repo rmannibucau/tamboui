@@ -182,6 +182,9 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
                         break;
                     }
                 } else {
+                    if (rule.lineStart() && !atLineStart(code, i)) {
+                        continue;
+                    }
                     Matcher m = matchers[r];
                     m.region(i, length);
                     if (m.lookingAt()) {
@@ -206,6 +209,9 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
                                 break;
                             }
                         } else {
+                            if (rule.lineStart() && !atLineStart(code, i)) {
+                                continue;
+                            }
                             Matcher m = matchers[r];
                             m.region(i, length);
                             if (m.lookingAt()) {
@@ -223,6 +229,10 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
             }
         }
         return out;
+    }
+
+    private static boolean atLineStart(String code, int i) {
+        return i == 0 || code.charAt(i - 1) == '\n';
     }
 
     private static List<Line> toLines(List<Token> tokens, Style base, SyntaxTheme theme) {
@@ -316,6 +326,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
             add(cssGrammar());
             add(bashGrammar());
             add(yamlGrammar());
+            add(propertiesGrammar());
             add(sqlGrammar());
             add(goGrammar());
             add(rustGrammar());
@@ -555,6 +566,19 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
     }
 
     // ---- YAML ----
+
+    // ---- Properties ----
+
+    private static Grammar propertiesGrammar() {
+        Grammar.Builder b = Grammar.builder("properties").alias("props");
+        // Comments and keys are line-oriented; line anchoring keeps ':' and '='
+        // inside URI-heavy values (kafka:topic?x=y) from being mistaken for keys.
+        b.rule(Grammar.Rule.linePattern(TokenType.COMMENT, Pattern.compile("[#!][^\\n]*")));
+        b.rule(Grammar.Rule.linePattern(TokenType.ATTRIBUTE, Pattern.compile("[^=:\\s#!][^=:\\n]*")));
+        b.rule(Grammar.Rule.pattern(TokenType.CONSTANT, Pattern.compile("\\$\\{[^}\\n]*+\\}")));
+        b.rule(Grammar.Rule.pattern(TokenType.NUMBER, Pattern.compile(NUMBERS)));
+        return b.build();
+    }
 
     private static Grammar yamlGrammar() {
         Grammar.Builder b = Grammar.builder("yaml").alias("yml");

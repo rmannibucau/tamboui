@@ -64,6 +64,10 @@ class GrammarSmokeTest {
             Arguments.of("sql", "SELECT id FROM users -- uppercase is the common style",
                 new Object[][] {
                     {"SELECT", TokenType.KEYWORD}}),
+            Arguments.of("properties", "# note\napp.port=8080\nname=${env}",
+                new Object[][] {
+                    {"# note", TokenType.COMMENT}, {"app.port", TokenType.ATTRIBUTE},
+                    {"8080", TokenType.NUMBER}, {"${env}", TokenType.CONSTANT}}),
             Arguments.of("go", "func main() { s := \"x\" } // done",
                 new Object[][] {
                     {"func", TokenType.KEYWORD}, {"\"x\"", TokenType.STRING}, {"// done", TokenType.COMMENT}}),

@@ -220,6 +220,23 @@ class RegexSyntaxHighlighterTest {
     }
 
     @Test
+    @DisplayName("properties keys are line-anchored: URL-heavy values stay plain")
+    void propertiesKeysAreLineAnchored() {
+        // 'http' sits before a ':' mid-line - without line anchoring it would
+        // be mistaken for a key; Camel-style URI values make this common.
+        List<Line> lines = highlight("uri=http://x:8080/y", "properties");
+
+        assertThat(fgOf(lines.get(0), "uri")).isEqualTo(rgb(TokenType.ATTRIBUTE));
+        for (Span span : lines.get(0).spans()) {
+            if (span.content().contains("http")) {
+                assertThat(span.style().fg().map(Color::toRgb).orElse(null))
+                    .as("URL fragment must not be key-colored")
+                    .isNotEqualTo(rgb(TokenType.ATTRIBUTE));
+            }
+        }
+    }
+
+    @Test
     @DisplayName("spans carry their token class as TokenType and Tags extensions")
     void spansCarryTokenClass() {
         List<Line> lines = highlight("class total = \"x\"; // done", "java");
