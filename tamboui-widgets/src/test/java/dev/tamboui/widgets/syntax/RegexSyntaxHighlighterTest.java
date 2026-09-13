@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import dev.tamboui.style.Color;
 import dev.tamboui.style.Modifier;
 import dev.tamboui.style.Style;
+import dev.tamboui.style.Tags;
 import dev.tamboui.text.Line;
 import dev.tamboui.text.Span;
 
@@ -216,5 +217,46 @@ class RegexSyntaxHighlighterTest {
         assertThat(lines).hasSize(1);
         assertThat(lines.get(0).spans()).hasSize(1);
         assertThat(raw(lines.get(0))).isEqualTo(repeat('a', cap + 1) + "= 1");
+    }
+
+    @Test
+    @DisplayName("spans carry their token class as TokenType and Tags extensions")
+    void spansCarryTokenClass() {
+        List<Line> lines = highlight("class total = \"x\"; // done", "java");
+
+        assertThat(typeOf(lines, "class")).contains(TokenType.KEYWORD);
+        assertThat(typeOf(lines, "\"x\"")).contains(TokenType.STRING);
+        assertThat(typeOf(lines, "// done")).contains(TokenType.COMMENT);
+        // Untokenized text is tagged PLAIN, so consumers can distinguish
+        // "not tokenized" from "no highlighter ran"
+        assertThat(typeOf(lines, " total ")).contains(TokenType.PLAIN);
+
+        // The same class also rides the established Tags mechanism, following
+        // the "syntax-<type>" naming convention
+        assertThat(tagsOf(lines, "class")).contains("syntax-keyword");
+        assertThat(tagsOf(lines, "// done")).contains("syntax-comment");
+    }
+
+    private static java.util.Optional<TokenType> typeOf(List<Line> lines, String content) {
+        for (Line line : lines) {
+            for (Span span : line.spans()) {
+                if (span.content().equals(content)) {
+                    return span.style().extension(TokenType.class);
+                }
+            }
+        }
+        return java.util.Optional.empty();
+    }
+
+    private static java.util.Set<String> tagsOf(List<Line> lines, String content) {
+        for (Line line : lines) {
+            for (Span span : line.spans()) {
+                if (span.content().equals(content)) {
+                    return span.style().extension(Tags.class).map(Tags::values)
+                        .orElse(java.util.Collections.emptySet());
+                }
+            }
+        }
+        return java.util.Collections.emptySet();
     }
 }

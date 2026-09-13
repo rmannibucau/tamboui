@@ -6,13 +6,16 @@ package dev.tamboui.widgets.syntax;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import dev.tamboui.style.Style;
+import dev.tamboui.style.Tags;
 import dev.tamboui.text.Line;
 import dev.tamboui.text.Span;
 
@@ -223,14 +226,25 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
     }
 
     private static List<Line> toLines(List<Token> tokens, Style base, SyntaxTheme theme) {
+        // Resolve each token type's style once, tagging it with the semantic
+        // "class" so it survives into the Line/Span pipeline: the typed
+        // TokenType extension for programmatic consumers (re-theming, exporters,
+        // tests), and a Tags extension ("syntax-keyword", "syntax-string", ...)
+        // for the established markup/styled-area machinery.
+        Map<TokenType, Style> styles = new EnumMap<>(TokenType.class);
+        for (TokenType type : TokenType.values()) {
+            styles.put(type, theme.style(type, base)
+                .withExtension(TokenType.class, type)
+                .withExtension(Tags.class, Tags.of("syntax-" + type.name().toLowerCase(Locale.ROOT))));
+        }
+
         List<Line> lines = new ArrayList<>();
         List<Span> current = new ArrayList<>();
         for (Token token : tokens) {
             String[] parts = token.text.split("\n", -1);
             for (int p = 0; p < parts.length; p++) {
                 if (!parts[p].isEmpty()) {
-                    Style style = theme.style(token.type, base);
-                    current.add(Span.styled(parts[p], style));
+                    current.add(Span.styled(parts[p], styles.get(token.type)));
                 }
                 if (p < parts.length - 1) {
                     lines.add(Line.from(current));
@@ -319,6 +333,12 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
     }
 
     // Helpers shared by the built-in grammars.
+
+    private static Grammar.Rule wordsIgnoreCase(String csv) {
+        String[] parts = csv.trim().split("\\s+");
+        return Grammar.Rule.pattern(TokenType.KEYWORD,
+            Pattern.compile("\\b(?:" + String.join("|", parts) + ")\\b", Pattern.CASE_INSENSITIVE));
+    }
 
     private static Grammar.Rule words(String csv) {
         String[] parts = csv.trim().split("\\s+");
@@ -503,7 +523,9 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
         b.rule(blockComment("/*", "*/"));
         b.rule(doubleString());
         b.rule(singleString());
-        b.rule(Grammar.Rule.pattern(TokenType.NUMBER, Pattern.compile(NUMBERS)));
+        // CSS dimensions carry their unit (4px, 1.5em, 80%)
+        b.rule(Grammar.Rule.pattern(TokenType.NUMBER,
+            Pattern.compile("\\d[\\d_]*(?:\\.\\d+)?(?:[a-zA-Z]+|%)?")));
         b.rule(Grammar.Rule.pattern(TokenType.ATTRIBUTE,
             Pattern.compile("([-#]?[A-Za-z_][-A-Za-z0-9_]*)\\s*:")));
         b.rule(Grammar.Rule.pattern(TokenType.TYPE,
@@ -557,7 +579,8 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
         b.rule(doubleString());
         b.rule(singleString());
         b.rule(Grammar.Rule.pattern(TokenType.NUMBER, Pattern.compile(NUMBERS)));
-        b.rule(words("select insert update delete create drop alter table index view trigger "
+        // SQL keywords are conventionally written in either case
+        b.rule(wordsIgnoreCase("select insert update delete create drop alter table index view trigger "
             + "function procedure from where group by order having join inner left right outer "
             + "on as and or not null primary key foreign reference unique default check constraint "
             + "values set into distinct count sum avg min max between like in exists union all "
