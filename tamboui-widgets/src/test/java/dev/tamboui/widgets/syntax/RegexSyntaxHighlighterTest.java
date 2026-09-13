@@ -247,6 +247,15 @@ class RegexSyntaxHighlighterTest {
     }
 
     @Test
+    @DisplayName("function tokens exclude call punctuation")
+    void functionTokensExcludeCallPunctuation() {
+        List<Line> lines = highlight("run()", "java");
+
+        assertThat(typeOf(lines, "run")).contains(TokenType.FUNCTION);
+        assertThat(typeOf(lines, "(")).contains(TokenType.PUNCTUATION);
+    }
+
+    @Test
     @DisplayName("HTML distinguishes tag names, attributes, and text")
     void htmlDistinguishesTagNamesAttributesAndText() {
         List<Line> lines = highlight("<a href=\"target\">link</a>", "html");

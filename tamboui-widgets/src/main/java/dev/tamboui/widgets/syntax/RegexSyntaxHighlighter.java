@@ -389,6 +389,11 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
         return Grammar.Rule.multiline(TokenType.COMMENT, open, close);
     }
 
+    private static Grammar.Rule function(String identifierPattern) {
+        return Grammar.Rule.pattern(TokenType.FUNCTION,
+            Pattern.compile(identifierPattern + "(?=\\s*\\()"));
+    }
+
     private static Grammar.Rule doubleString() {
         return Grammar.Rule.pattern(TokenType.STRING, Pattern.compile("\"(?:\\\\.|[^\"\\\\])*+\""));
     }
@@ -431,7 +436,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
             + "int interface long native new package private protected public return short static "
             + "strictfp super switch synchronized this throw throws transient try void volatile while "
             + "record sealed permits var yield true false null"));
-        b.rule(Grammar.Rule.pattern(TokenType.FUNCTION, Pattern.compile("[A-Za-z_$][\\w$]*\\s*\\(")));
+        b.rule(function("[A-Za-z_$][\\w$]*"));
         operators(b);
         return b.build();
     }
@@ -455,7 +460,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
             + "infix init inline inner interface internal is lateinit noinline object open operator "
             + "out override package private protected public reified return sealed set super suspend "
             + "tailrec this throw try typealias val value var vararg when where while true false null"));
-        b.rule(Grammar.Rule.pattern(TokenType.FUNCTION, Pattern.compile("[A-Za-z_$][\\w$]*\\s*\\(")));
+        b.rule(function("[A-Za-z_$][\\w$]*"));
         operators(b);
         return b.build();
     }
@@ -476,7 +481,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
             + "extends finally for function if import in instanceof let new of return static super "
             + "switch this throw try typeof var void while with async await yield true false null "
             + "undefined"));
-        b.rule(Grammar.Rule.pattern(TokenType.FUNCTION, Pattern.compile("[A-Za-z_$][\\w$]*\\s*\\(")));
+        b.rule(function("[A-Za-z_$][\\w$]*"));
         operators(b);
         return b.build();
     }
@@ -509,8 +514,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
             + "try while with yield True False None self"));
         b.rule(Grammar.Rule.pattern(TokenType.ANNOTATION,
             Pattern.compile("@[A-Za-z_][A-Za-z0-9_.]*")));
-        b.rule(Grammar.Rule.pattern(TokenType.FUNCTION,
-            Pattern.compile("[A-Za-z_][\\w]*\\s*\\(")));
+        b.rule(function("[A-Za-z_][\\w]*"));
         b.rule(Grammar.Rule.pattern(TokenType.OPERATOR,
             Pattern.compile("==|!=|<=|>=|->|\\+=|-=|=|[-+*/%&|^~<>:]")));
         b.rule(Grammar.Rule.pattern(TokenType.PUNCTUATION, Pattern.compile("[(){}\\[\\];,]")));
@@ -630,8 +634,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
             + "values set into distinct count sum avg min max between like in exists union all "
             + "case when then else end is asc desc limit offset returning with window partition "
             + "over true false"));
-        b.rule(Grammar.Rule.pattern(TokenType.FUNCTION,
-            Pattern.compile("[A-Za-z_][\\w]*\\s*\\(")));
+        b.rule(function("[A-Za-z_][\\w]*"));
         b.rule(Grammar.Rule.pattern(TokenType.OPERATOR, Pattern.compile("[-+*/%<>=!~?&|^,]")));
         b.rule(Grammar.Rule.pattern(TokenType.PUNCTUATION, Pattern.compile("[().]")));
         return b.build();
@@ -651,7 +654,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
             + "package switch const fallthrough if range type continue for import return var true "
             + "false iota nil go"));
         b.rule(Grammar.Rule.pattern(TokenType.TYPE, Pattern.compile("\\b[A-Z][a-zA-Z0-9_]*\\b")));
-        b.rule(Grammar.Rule.pattern(TokenType.FUNCTION, Pattern.compile("[A-Za-z_][\\w]*\\s*\\(")));
+        b.rule(function("[A-Za-z_][\\w]*"));
         operators(b);
         return b.build();
     }
@@ -672,7 +675,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
         b.rule(words("as break const continue crate dyn else enum extern fn for if impl in let loop "
             + "match mod move mut pub ref return self Self static struct super trait type unsafe use "
             + "where while async await true false"));
-        b.rule(Grammar.Rule.pattern(TokenType.FUNCTION, Pattern.compile("[a-z_][\\w]*\\s*\\(")));
+        b.rule(function("[a-z_][\\w]*"));
         operators(b);
         return b.build();
     }
