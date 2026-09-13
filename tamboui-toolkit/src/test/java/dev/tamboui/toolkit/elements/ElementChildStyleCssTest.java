@@ -491,6 +491,92 @@ class ElementChildStyleCssTest extends AbstractElementTest {
     class TextAreaElementCssTests {
 
         @Test
+        @DisplayName("syntax token colors resolve from CSS child selectors")
+        void syntaxTokenColorsFromCss() {
+            String css = "TextAreaElement-syntax-keyword { color: red; }\n"
+                + "TextAreaElement-syntax-string { color: blue; }";
+            styleEngine.addStylesheet("test", css);
+            styleEngine.setActiveStylesheet("test");
+
+            Rect area = new Rect(0, 0, 24, 1);
+            Buffer buffer = Buffer.empty(area);
+            Frame frame = Frame.forTesting(buffer);
+
+            textArea(new TextAreaState("class x = \"y\";"))
+                .highlighter(dev.tamboui.widgets.syntax.RegexSyntaxHighlighter.defaults(), "java")
+                .showCursor(false)
+                .render(frame, area, context);
+
+            // 'class' keyword takes the CSS color, overriding the default theme
+            assertThat(buffer.get(0, 0).style().fg()).contains(Color.RED);
+            // '"y"' string literal likewise (starts at col 10)
+            assertThat(buffer.get(10, 0).style().fg()).contains(Color.BLUE);
+        }
+
+        @Test
+        @DisplayName("generic syntax-<type> selectors theme highlighting without naming the element")
+        void genericSyntaxSelectors() {
+            String css = "syntax-keyword { color: red; }\n"
+                + "syntax-string { color: blue; }";
+            styleEngine.addStylesheet("test", css);
+            styleEngine.setActiveStylesheet("test");
+
+            Rect area = new Rect(0, 0, 24, 1);
+            Buffer buffer = Buffer.empty(area);
+            Frame frame = Frame.forTesting(buffer);
+
+            textArea(new TextAreaState("class x = \"y\";"))
+                .highlighter(dev.tamboui.widgets.syntax.RegexSyntaxHighlighter.defaults(), "java")
+                .showCursor(false)
+                .render(frame, area, context);
+
+            assertThat(buffer.get(0, 0).style().fg()).contains(Color.RED);
+            assertThat(buffer.get(10, 0).style().fg()).contains(Color.BLUE);
+        }
+
+        @Test
+        @DisplayName("element-specific syntax selector overrides the generic one")
+        void specificSyntaxSelectorOverridesGeneric() {
+            String css = "syntax-keyword { color: red; }\n"
+                + "TextAreaElement-syntax-keyword { color: blue; }";
+            styleEngine.addStylesheet("test", css);
+            styleEngine.setActiveStylesheet("test");
+
+            Rect area = new Rect(0, 0, 24, 1);
+            Buffer buffer = Buffer.empty(area);
+            Frame frame = Frame.forTesting(buffer);
+
+            textArea(new TextAreaState("class x;"))
+                .highlighter(dev.tamboui.widgets.syntax.RegexSyntaxHighlighter.defaults(), "java")
+                .showCursor(false)
+                .render(frame, area, context);
+
+            assertThat(buffer.get(0, 0).style().fg()).contains(Color.BLUE);
+        }
+
+        @Test
+        @DisplayName("tokens without CSS keep the default theme colors")
+        void syntaxTokensWithoutCssKeepDefaults() {
+            String css = "TextAreaElement-syntax-keyword { color: red; }";
+            styleEngine.addStylesheet("test", css);
+            styleEngine.setActiveStylesheet("test");
+
+            Rect area = new Rect(0, 0, 24, 1);
+            Buffer buffer = Buffer.empty(area);
+            Frame frame = Frame.forTesting(buffer);
+
+            textArea(new TextAreaState("class x = \"y\";"))
+                .highlighter(dev.tamboui.widgets.syntax.RegexSyntaxHighlighter.defaults(), "java")
+                .showCursor(false)
+                .render(frame, area, context);
+
+            // string has no CSS rule: keeps the default theme's string color
+            Style themed = dev.tamboui.widgets.syntax.SyntaxTheme.DEFAULTS
+                .style(dev.tamboui.widgets.syntax.TokenType.STRING, Style.EMPTY);
+            assertThat(buffer.get(10, 0).style().fg()).isEqualTo(themed.fg());
+        }
+
+        @Test
         @DisplayName("explicit line number style overrides CSS")
         void explicitLineNumberStyleOverridesCss() {
             String css = "TextAreaElement-line-number { color: cyan; }";
