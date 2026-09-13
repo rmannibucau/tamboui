@@ -127,6 +127,10 @@ public final class Grammar {
          * @return a new rule
          */
         public static Rule literal(TokenType type, String text) {
+            Objects.requireNonNull(text, "text");
+            if (text.isEmpty()) {
+                throw new IllegalArgumentException("Literal rule text must not be empty");
+            }
             return pattern(type, Pattern.compile(Pattern.quote(text)));
         }
 
@@ -142,8 +146,16 @@ public final class Grammar {
          * @return a new rule
          */
         public static Rule multiline(TokenType type, String open, String close) {
-            return new Rule(Objects.requireNonNull(type, "type"), null,
-                Objects.requireNonNull(open, "open"), Objects.requireNonNull(close, "close"), false);
+            Objects.requireNonNull(type, "type");
+            Objects.requireNonNull(open, "open");
+            Objects.requireNonNull(close, "close");
+            if (open.isEmpty()) {
+                throw new IllegalArgumentException("Multiline rule open delimiter must not be empty");
+            }
+            if (close.isEmpty()) {
+                throw new IllegalArgumentException("Multiline rule close delimiter must not be empty");
+            }
+            return new Rule(type, null, open, close, false);
         }
 
         TokenType type() {

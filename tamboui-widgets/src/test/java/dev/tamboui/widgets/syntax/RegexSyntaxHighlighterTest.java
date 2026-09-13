@@ -20,6 +20,7 @@ import dev.tamboui.text.Span;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
@@ -177,6 +178,25 @@ class RegexSyntaxHighlighterTest {
 
         assertThat(exception).hasMessage(
             "Grammar rule KEYWORD matched an empty token at offset 0; rules must consume at least one character");
+    }
+
+    @Test
+    @DisplayName("an empty literal is rejected when constructing a rule")
+    void emptyLiteralIsRejected() {
+        assertThatThrownBy(() -> Grammar.Rule.literal(TokenType.KEYWORD, ""))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Literal rule text must not be empty");
+    }
+
+    @Test
+    @DisplayName("empty multiline delimiters are rejected when constructing a rule")
+    void emptyMultilineDelimitersAreRejected() {
+        assertThatThrownBy(() -> Grammar.Rule.multiline(TokenType.COMMENT, "", "*/"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Multiline rule open delimiter must not be empty");
+        assertThatThrownBy(() -> Grammar.Rule.multiline(TokenType.COMMENT, "/*", ""))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Multiline rule close delimiter must not be empty");
     }
 
     @Test
