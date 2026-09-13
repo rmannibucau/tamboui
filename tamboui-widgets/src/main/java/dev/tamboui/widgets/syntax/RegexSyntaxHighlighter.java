@@ -186,8 +186,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
                         continue;
                     }
                     Matcher m = matchers[r];
-                    m.region(i, length);
-                    if (m.lookingAt()) {
+                    if (matchesAt(m, i, length, rule)) {
                         out.add(new Token(m.group(), rule.type()));
                         i = m.end();
                         matched = true;
@@ -213,8 +212,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
                                 continue;
                             }
                             Matcher m = matchers[r];
-                            m.region(i, length);
-                            if (m.lookingAt()) {
+                            if (matchesAt(m, i, length, rule)) {
                                 any = true;
                                 break;
                             }
@@ -229,6 +227,19 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
             }
         }
         return out;
+    }
+
+    private static boolean matchesAt(Matcher matcher, int offset, int length, Grammar.Rule rule) {
+        matcher.region(offset, length);
+        if (!matcher.lookingAt()) {
+            return false;
+        }
+        if (matcher.end() == offset) {
+            throw new IllegalArgumentException("Grammar rule " + rule.type()
+                + " matched an empty token at offset " + offset
+                + "; rules must consume at least one character");
+        }
+        return true;
     }
 
     private static boolean atLineStart(String code, int i) {

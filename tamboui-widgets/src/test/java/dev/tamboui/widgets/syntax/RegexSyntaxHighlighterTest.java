@@ -6,6 +6,7 @@ package dev.tamboui.widgets.syntax;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import dev.tamboui.text.Span;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 class RegexSyntaxHighlighterTest {
@@ -150,6 +152,22 @@ class RegexSyntaxHighlighterTest {
                 assertThat(span.style().addModifiers()).contains(Modifier.ITALIC);
             }
         }
+    }
+
+    @Test
+    @DisplayName("a zero-length custom rule is rejected without stalling")
+    void zeroLengthCustomRuleIsRejected() {
+        Grammar grammar = Grammar.builder("custom")
+            .rule(Grammar.Rule.pattern(TokenType.KEYWORD, Pattern.compile("")))
+            .build();
+        RegexSyntaxHighlighter highlighter = RegexSyntaxHighlighter.of(grammar);
+
+        IllegalArgumentException exception = assertTimeoutPreemptively(Duration.ofSeconds(1),
+            () -> assertThrows(IllegalArgumentException.class,
+                () -> highlighter.highlight("hello", "custom", BASE, THEME)));
+
+        assertThat(exception).hasMessage(
+            "Grammar rule KEYWORD matched an empty token at offset 0; rules must consume at least one character");
     }
 
     @Test
