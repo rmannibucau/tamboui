@@ -4,6 +4,9 @@
  */
 package dev.tamboui.markdown;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -41,6 +44,24 @@ class MarkdownViewHighlightingTest {
         assertThat(buffer.get(1, 1).style().fg().map(Color::toRgb)).isPresent();
         assertThat(buffer.get(1, 1).style().fg().map(Color::toRgb).get()).isEqualTo(keywordRgb);
         assertThat(buffer.get(1, 1).symbol()).isEqualTo("p");
+    }
+
+    @Test
+    @DisplayName("passes only the language portion of a fenced code info string")
+    void passesLanguageFromFencedCodeInfoString() {
+        List<String> receivedLanguages = new ArrayList<>();
+        SyntaxHighlighter highlighter = (code, language, base, theme) -> {
+            receivedLanguages.add(language);
+            return SyntaxHighlighter.none().highlight(code, language, base, theme);
+        };
+        MarkdownView view = MarkdownView.builder()
+            .source("```java linenums\npublic class Demo {}\n```")
+            .syntaxHighlighter(highlighter)
+            .build();
+
+        render(view, 30, 3);
+
+        assertThat(receivedLanguages).containsExactly("java");
     }
 
     @Test

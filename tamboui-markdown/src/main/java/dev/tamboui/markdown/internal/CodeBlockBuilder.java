@@ -44,7 +44,7 @@ final class CodeBlockBuilder {
         Block block = blockBuilder.build();
 
         Style codeStyle = styles.codeBlock();
-        List<Line> lines = highlighter.highlight(trimmed, info, codeStyle, theme);
+        List<Line> lines = highlighter.highlight(trimmed, languageFromInfo(info), codeStyle, theme);
 
         int innerWidth = Math.max(1, width - 2);
         List<Line> wrapped = clip(lines, innerWidth);
@@ -57,6 +57,22 @@ final class CodeBlockBuilder {
             .overflow(Overflow.CLIP)
             .build();
         return new WidgetChunk(paragraph, wrapped.size() + 2);
+    }
+
+    private static String languageFromInfo(String info) {
+        if (info == null) {
+            return null;
+        }
+        String trimmed = info.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        for (int i = 0; i < trimmed.length(); i++) {
+            if (Character.isWhitespace(trimmed.charAt(i))) {
+                return trimmed.substring(0, i);
+            }
+        }
+        return trimmed;
     }
 
     private static List<Line> clip(List<Line> lines, int width) {
