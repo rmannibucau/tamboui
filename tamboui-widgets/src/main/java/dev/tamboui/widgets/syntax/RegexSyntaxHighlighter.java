@@ -35,10 +35,13 @@ import dev.tamboui.text.Span;
  */
 public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
 
+    private static final int DEFAULT_MAX_LINE_LENGTH = 10_000;
+
     private final Map<String, Grammar> byId;
     private final Map<String, Grammar> byAlias;
+    private final int maxLineLength;
 
-    private RegexSyntaxHighlighter(List<Grammar> grammars) {
+    private RegexSyntaxHighlighter(List<Grammar> grammars, int maxLineLength) {
         Map<String, Grammar> ids = new HashMap<>();
         Map<String, Grammar> aliases = new HashMap<>();
         for (Grammar g : grammars) {
@@ -49,6 +52,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
         }
         this.byId = ids;
         this.byAlias = aliases;
+        this.maxLineLength = maxLineLength;
     }
 
     /**
@@ -79,11 +83,11 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
      */
     public static RegexSyntaxHighlighter of(Grammar... grammars) {
         if (grammars == null || grammars.length == 0) {
-            return new RegexSyntaxHighlighter(Collections.emptyList());
+            return new RegexSyntaxHighlighter(Collections.emptyList(), DEFAULT_MAX_LINE_LENGTH);
         }
         List<Grammar> list = new ArrayList<>(grammars.length);
         Collections.addAll(list, grammars);
-        return new RegexSyntaxHighlighter(list);
+        return new RegexSyntaxHighlighter(list, DEFAULT_MAX_LINE_LENGTH);
     }
 
     /**
@@ -115,8 +119,25 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
         if (trimmed.isEmpty()) {
             return Collections.singletonList(Line.from(Span.styled("", base)));
         }
+        if (exceedsMaxLineLength(trimmed)) {
+            return plain(code, base);
+        }
         List<Token> tokens = tokenize(grammar, trimmed);
         return toLines(tokens, base, theme);
+    }
+
+    private boolean exceedsMaxLineLength(String code) {
+        int length = code.length();
+        int lineStart = 0;
+        for (int i = 0; i <= length; i++) {
+            if (i == length || code.charAt(i) == '\n') {
+                if (i - lineStart > maxLineLength) {
+                    return true;
+                }
+                lineStart = i + 1;
+            }
+        }
+        return false;
     }
 
     private static List<Line> plain(String code, Style base) {
@@ -237,6 +258,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
     public static final class Builder {
 
         private final List<Grammar> grammars = new ArrayList<>();
+        private int maxLineLength = DEFAULT_MAX_LINE_LENGTH;
 
         private Builder(boolean seedDefaults) {
             if (seedDefaults) {
@@ -252,6 +274,20 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
          */
         public Builder add(Grammar grammar) {
             grammars.add(grammar);
+            return this;
+        }
+
+        /**
+         * Configures the maximum source line length that will be tokenized.
+         * Lines longer than this cap fall back to plain rendering, bounding the
+         * worst-case cost to tokenize pathological input. Defaults to
+         * {@link RegexSyntaxHighlighter#DEFAULT_MAX_LINE_LENGTH}.
+         *
+         * @param maxLineLength the maximum length of a tokenized line
+         * @return this builder
+         */
+        public Builder maxLineLength(int maxLineLength) {
+            this.maxLineLength = maxLineLength;
             return this;
         }
 
@@ -278,7 +314,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
          * @return a new highlighter
          */
         public RegexSyntaxHighlighter build() {
-            return new RegexSyntaxHighlighter(grammars);
+            return new RegexSyntaxHighlighter(grammars, maxLineLength);
         }
     }
 
@@ -303,15 +339,15 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
     }
 
     private static Grammar.Rule doubleString() {
-        return Grammar.Rule.pattern(TokenType.STRING, Pattern.compile("\"(?:\\\\.|[^\"\\\\])*\""));
+        return Grammar.Rule.pattern(TokenType.STRING, Pattern.compile("\"(?:\\\\.|[^\"\\\\])*+\""));
     }
 
     private static Grammar.Rule singleString() {
-        return Grammar.Rule.pattern(TokenType.STRING, Pattern.compile("'(?:\\\\.|[^'\\\\])*'"));
+        return Grammar.Rule.pattern(TokenType.STRING, Pattern.compile("'(?:\\\\.|[^'\\\\])*+'"));
     }
 
     private static Grammar.Rule interpString() {
-        return Grammar.Rule.pattern(TokenType.STRING, Pattern.compile("`(?:\\\\.|[^`\\\\])*`"));
+        return Grammar.Rule.pattern(TokenType.STRING, Pattern.compile("`(?:\\\\.|[^`\\\\])*+`"));
     }
 
     private static Grammar.Rule multilineString(final String open, final String close) {

@@ -17,6 +17,7 @@ import dev.tamboui.text.Line;
 import dev.tamboui.text.Span;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 class RegexSyntaxHighlighterTest {
@@ -43,6 +44,14 @@ class RegexSyntaxHighlighterTest {
 
     private static List<Line> highlight(String code, String language) {
         return RegexSyntaxHighlighter.defaults().highlight(code, language, BASE, THEME);
+    }
+
+    private static String repeat(char c, int times) {
+        StringBuilder sb = new StringBuilder(times);
+        for (int i = 0; i < times; i++) {
+            sb.append(c);
+        }
+        return sb.toString();
     }
 
     @Test
@@ -170,5 +179,42 @@ class RegexSyntaxHighlighterTest {
 
         assertTimeoutPreemptively(Duration.ofSeconds(2), () ->
                 highlight(escapeSpam, "js"));
+    }
+
+    @Test
+    @DisplayName("escaped strings are still highlighted as strings")
+    void escapedStringsAreHighlighted() {
+        assertThat(fgOf(highlight("String s = \"a\\\"b\";", "java").get(0), "\"a\\\"b\""))
+            .isEqualTo(rgb(TokenType.STRING));
+        assertThat(fgOf(highlight("char c = '\\'';", "java").get(0), "'\\''"))
+            .isEqualTo(rgb(TokenType.STRING));
+    }
+
+    @Test
+    @DisplayName("an unclosed or escape-heavy string run does not stack overflow")
+    void unclosedStringDoesNotStackOverflow() {
+        for (String q : new String[] {"\"", "'", "`"}) {
+            int n = 9_000;
+            assertThatCode(() -> highlight(q + repeat('a', n), "python"))
+                .doesNotThrowAnyException();
+            assertThatCode(() -> highlight(q + repeat('\\', n), "python"))
+                .doesNotThrowAnyException();
+            assertThatCode(() -> highlight(q + repeat('a', n), "javascript"))
+                .doesNotThrowAnyException();
+            assertThatCode(() -> highlight(q + repeat('a', n), "sql"))
+                .doesNotThrowAnyException();
+        }
+    }
+
+    @Test
+    @DisplayName("lines longer than the configured cap fall back to plain rendering")
+    void overLongLinesFallBackToPlain() {
+        int cap = 16;
+        RegexSyntaxHighlighter hl =
+            RegexSyntaxHighlighter.builder().maxLineLength(cap).build();
+        List<Line> lines = hl.highlight(repeat('a', cap + 1) + "= 1", "java", BASE, THEME);
+        assertThat(lines).hasSize(1);
+        assertThat(lines.get(0).spans()).hasSize(1);
+        assertThat(raw(lines.get(0))).isEqualTo(repeat('a', cap + 1) + "= 1");
     }
 }
