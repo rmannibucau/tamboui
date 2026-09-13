@@ -4,6 +4,7 @@
  */
 package dev.tamboui.widgets.syntax;
 
+import java.time.Duration;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +17,7 @@ import dev.tamboui.text.Line;
 import dev.tamboui.text.Span;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 class RegexSyntaxHighlighterTest {
 
@@ -138,5 +140,35 @@ class RegexSyntaxHighlighterTest {
                 assertThat(span.style().addModifiers()).contains(Modifier.ITALIC);
             }
         }
+    }
+
+    @Test
+    @DisplayName("highlight survives an unclosed string of 20k characters")
+    void highlightSurvivesUnclosedLongString() {
+        // Streaming markdown routinely contains a not-yet-closed string literal
+        // mid-stream. Alternation-under-star string rules recurse per character
+        // in Java's regex engine, so this input must neither crash with
+        // StackOverflowError nor take pathologically long.
+        StringBuilder sb = new StringBuilder("\"");
+        for (int i = 0; i < 20000; i++) {
+            sb.append('a');
+        }
+        String unclosed = sb.toString();
+
+        assertTimeoutPreemptively(Duration.ofSeconds(2), () ->
+                highlight(unclosed, "java"));
+    }
+
+    @Test
+    @DisplayName("highlight survives escape-heavy input")
+    void highlightSurvivesEscapeSpam() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 5000; i++) {
+            sb.append("\"a\\");
+        }
+        String escapeSpam = sb.toString();
+
+        assertTimeoutPreemptively(Duration.ofSeconds(2), () ->
+                highlight(escapeSpam, "js"));
     }
 }
