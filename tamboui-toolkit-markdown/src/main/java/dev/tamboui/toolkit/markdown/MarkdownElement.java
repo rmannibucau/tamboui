@@ -46,7 +46,7 @@ public final class MarkdownElement extends StyledElement<MarkdownElement> {
     private String source;
     private MarkdownStyles styles;
     private SyntaxHighlighter syntaxHighlighter = RegexSyntaxHighlighter.defaults();
-    private SyntaxTheme syntaxTheme = SyntaxTheme.DEFAULTS;
+    private SyntaxTheme syntaxTheme;
     private Overflow overflow;
     private int scroll;
 
@@ -163,7 +163,7 @@ public final class MarkdownElement extends StyledElement<MarkdownElement> {
         StylePropertyResolver resolver = context != null
             ? context.resolveStyle(this).map(r -> (StylePropertyResolver) r).orElse(StylePropertyResolver.empty())
             : StylePropertyResolver.empty();
-        MarkdownView view = buildView(effectiveStyle, resolver);
+        MarkdownView view = buildView(effectiveStyle, resolver, context);
         return Size.of(availableWidth, view.computeHeight(availableWidth));
     }
 
@@ -173,16 +173,17 @@ public final class MarkdownElement extends StyledElement<MarkdownElement> {
         StylePropertyResolver resolver = context.resolveStyle(this)
             .map(r -> (StylePropertyResolver) r)
             .orElse(StylePropertyResolver.empty());
-        frame.renderWidget(buildView(effectiveStyle, resolver), area);
+        frame.renderWidget(buildView(effectiveStyle, resolver, context), area);
     }
 
-    private MarkdownView buildView(Style effectiveStyle, StylePropertyResolver resolver) {
+    private MarkdownView buildView(Style effectiveStyle, StylePropertyResolver resolver, RenderContext context) {
+        SyntaxTheme effectiveSyntaxTheme = syntaxTheme != null ? syntaxTheme : resolveSyntaxTheme(context);
         MarkdownView.Builder b = MarkdownView.builder()
             .source(source)
             .style(effectiveStyle)
             .styleResolver(resolver)
             .syntaxHighlighter(syntaxHighlighter)
-            .syntaxTheme(syntaxTheme)
+            .syntaxTheme(effectiveSyntaxTheme)
             .scroll(scroll);
         if (styles != null) {
             b.styles(styles);

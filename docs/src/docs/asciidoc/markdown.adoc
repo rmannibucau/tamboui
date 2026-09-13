@@ -243,9 +243,22 @@ definition lives in `dev.tamboui.widgets.syntax`:
   uses these; `.of(grammar...)` / `.builder()` let you add or replace grammars.
 
 Highlighting combines a base, token, and theme style: each token is rendered
-as `base.patch(tokenStyle)`, so an explicit `MarkdownStyles.codeBlock()`
-foreground color always wins over the theme unless a grammar explicitly colors
-a token.
+as `base.patch(tokenStyle)`. A token style overrides properties it defines,
+including the `MarkdownStyles.codeBlock()` foreground; properties not defined by
+the token style continue to come from the code-block base style.
+
+When using `MarkdownElement`, syntax token styles can also be configured with
+CSS child selectors or generic token selectors:
+
+[source,css]
+----
+MarkdownElement-syntax-keyword { color: magenta; }
+syntax-comment { color: gray; text-style: italic; }
+----
+
+The resolution order is an explicit `SyntaxTheme`, an element-specific child
+selector, a generic `syntax-<token-type>` selector, then
+`SyntaxTheme.DEFAULTS`.
 
 === Custom theme
 

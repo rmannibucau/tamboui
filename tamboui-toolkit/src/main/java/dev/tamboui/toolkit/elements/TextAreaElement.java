@@ -6,12 +6,9 @@ package dev.tamboui.toolkit.elements;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-import dev.tamboui.css.Styleable;
-import dev.tamboui.css.cascade.CssStyleResolver;
 import dev.tamboui.layout.Rect;
 import dev.tamboui.style.Color;
 import dev.tamboui.style.Overflow;
@@ -33,7 +30,6 @@ import dev.tamboui.widgets.input.TextAreaState;
 import dev.tamboui.widgets.syntax.RegexSyntaxHighlighter;
 import dev.tamboui.widgets.syntax.SyntaxHighlighter;
 import dev.tamboui.widgets.syntax.SyntaxTheme;
-import dev.tamboui.widgets.syntax.TokenType;
 
 /**
  * A DSL wrapper for the TextArea widget.
@@ -547,69 +543,6 @@ public final class TextAreaElement extends StyledElement<TextAreaElement> {
             widget.renderWithCursor(area, frame.buffer(), state, frame);
         } else {
             frame.renderStatefulWidget(widget, area, state);
-        }
-    }
-
-    /**
-     * Builds the effective syntax theme from CSS. For each token type, the
-     * resolution order is: element-specific child selector (e.g.
-     * {@code TextAreaElement-syntax-keyword} or {@code #my-editor-syntax-keyword}),
-     * then the generic {@code syntax-keyword} type selector shared by all
-     * highlighting widgets, then the {@link SyntaxTheme#DEFAULTS default} palette.
-     */
-    private SyntaxTheme resolveSyntaxTheme(RenderContext context) {
-        SyntaxTheme.Builder theme = SyntaxTheme.builder();
-        for (TokenType type : TokenType.values()) {
-            String name = "syntax-" + type.name().toLowerCase(Locale.ROOT);
-            Style css = resolveEffectiveStyle(context, name, null, null);
-            if (css == null) {
-                css = resolveGenericSyntaxStyle(context, name);
-            }
-            if (css != null) {
-                theme.token(type, css);
-            }
-        }
-        return theme.build();
-    }
-
-    /** Resolves the generic {@code syntax-<type>} type selector, or null when unset. */
-    private static Style resolveGenericSyntaxStyle(RenderContext context, String name) {
-        return context.resolveStyle(new SyntaxTokenStyleable(name))
-            .filter(CssStyleResolver::hasProperties)
-            .map(CssStyleResolver::toStyle)
-            .orElse(null);
-    }
-
-    /**
-     * A synthetic styleable whose type is a generic token-class selector such as
-     * {@code syntax-keyword}, letting stylesheets theme syntax highlighting once
-     * for every widget that supports it.
-     */
-    private static final class SyntaxTokenStyleable implements Styleable {
-        private final String type;
-
-        SyntaxTokenStyleable(String type) {
-            this.type = type;
-        }
-
-        @Override
-        public String styleType() {
-            return type;
-        }
-
-        @Override
-        public java.util.Optional<String> cssId() {
-            return java.util.Optional.empty();
-        }
-
-        @Override
-        public java.util.Set<String> cssClasses() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public java.util.Optional<Styleable> cssParent() {
-            return java.util.Optional.empty();
         }
     }
 
