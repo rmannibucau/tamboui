@@ -247,6 +247,19 @@ class RegexSyntaxHighlighterTest {
     }
 
     @Test
+    @DisplayName("HTML distinguishes tag names, attributes, and text")
+    void htmlDistinguishesTagNamesAttributesAndText() {
+        List<Line> lines = highlight("<a href=\"target\">link</a>", "html");
+
+        assertThat(lines.get(0).spans())
+            .filteredOn(span -> span.content().equals("a"))
+            .extracting(span -> span.style().extension(TokenType.class).orElse(null))
+            .containsExactly(TokenType.TAG, TokenType.TAG);
+        assertThat(typeOf(lines, "href")).contains(TokenType.ATTRIBUTE);
+        assertThat(typeOf(lines, "link")).contains(TokenType.PLAIN);
+    }
+
+    @Test
     @DisplayName("properties keys are line-anchored: URL-heavy values stay plain")
     void propertiesKeysAreLineAnchored() {
         // 'http' sits before a ':' mid-line - without line anchoring it would

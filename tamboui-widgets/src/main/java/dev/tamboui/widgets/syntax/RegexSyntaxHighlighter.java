@@ -164,7 +164,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
         for (int r = 0; r < rules.size(); r++) {
             Grammar.Rule rule = rules.get(r);
             if (!rule.multiline()) {
-                matchers[r] = rule.pattern().matcher(code);
+                matchers[r] = rule.pattern().matcher(code).useTransparentBounds(true);
             }
         }
         int i = 0;
@@ -537,10 +537,10 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
         Grammar.Builder b = Grammar.builder("xml").alias("html", "htm", "svg", "xhtml");
         b.rule(blockComment("<!--", "-->"));
         b.rule(Grammar.Rule.pattern(TokenType.PUNCTUATION, Pattern.compile("[<>/]")));
-        b.rule(Grammar.Rule.pattern(TokenType.TAG,
-            Pattern.compile("[A-Za-z_][-A-Za-z0-9_.:]*")));
         b.rule(Grammar.Rule.pattern(TokenType.ATTRIBUTE,
-            Pattern.compile("\\b[A-Za-z_:][-A-Za-z0-9_.:]*\\s*=")));
+            Pattern.compile("[A-Za-z_:][-A-Za-z0-9_.:]*(?=\\s*=)")));
+        b.rule(Grammar.Rule.pattern(TokenType.TAG,
+            Pattern.compile("(?:(?<=<)|(?<=</))[A-Za-z_][-A-Za-z0-9_.:]*")));
         b.rule(doubleString());
         b.rule(singleString());
         b.rule(Grammar.Rule.pattern(TokenType.PUNCTUATION, Pattern.compile("[={}]")));
