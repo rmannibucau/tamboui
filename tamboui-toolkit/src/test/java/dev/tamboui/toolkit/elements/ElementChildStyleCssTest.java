@@ -20,6 +20,8 @@ import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.widgets.input.TextAreaState;
 import dev.tamboui.widgets.input.TextInputState;
 import dev.tamboui.widgets.scrollbar.ScrollbarState;
+import dev.tamboui.widgets.syntax.SyntaxTheme;
+import dev.tamboui.widgets.syntax.TokenType;
 
 import static dev.tamboui.assertj.BufferAssertions.assertThat;
 import static dev.tamboui.toolkit.Toolkit.*;
@@ -503,7 +505,7 @@ class ElementChildStyleCssTest extends AbstractElementTest {
             Frame frame = Frame.forTesting(buffer);
 
             textArea(new TextAreaState("class x = \"y\";"))
-                .highlighter(dev.tamboui.widgets.syntax.RegexSyntaxHighlighter.defaults(), "java")
+                .highlighter("java")
                 .showCursor(false)
                 .render(frame, area, context);
 
@@ -511,6 +513,28 @@ class ElementChildStyleCssTest extends AbstractElementTest {
             assertThat(buffer.get(0, 0).style().fg()).contains(Color.RED);
             // '"y"' string literal likewise (starts at col 10)
             assertThat(buffer.get(10, 0).style().fg()).contains(Color.BLUE);
+        }
+
+        @Test
+        @DisplayName("convenience highlighter accepts an explicit theme")
+        void convenienceHighlighterAcceptsExplicitTheme() {
+            String css = "TextAreaElement-syntax-keyword { color: blue; }";
+            styleEngine.addStylesheet("test", css);
+            styleEngine.setActiveStylesheet("test");
+            SyntaxTheme theme = SyntaxTheme.builder()
+                .token(TokenType.KEYWORD, Style.EMPTY.fg(Color.RED))
+                .build();
+
+            Rect area = new Rect(0, 0, 24, 1);
+            Buffer buffer = Buffer.empty(area);
+            Frame frame = Frame.forTesting(buffer);
+
+            textArea(new TextAreaState("class Example {}"))
+                .highlighter("java", theme)
+                .showCursor(false)
+                .render(frame, area, context);
+
+            assertThat(buffer.get(0, 0).style().fg()).contains(Color.RED);
         }
 
         @Test

@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import dev.tamboui.css.Styleable;
 import dev.tamboui.css.cascade.CssStyleResolver;
@@ -29,6 +30,7 @@ import dev.tamboui.widgets.block.Borders;
 import dev.tamboui.widgets.block.Title;
 import dev.tamboui.widgets.input.TextArea;
 import dev.tamboui.widgets.input.TextAreaState;
+import dev.tamboui.widgets.syntax.RegexSyntaxHighlighter;
 import dev.tamboui.widgets.syntax.SyntaxHighlighter;
 import dev.tamboui.widgets.syntax.SyntaxTheme;
 import dev.tamboui.widgets.syntax.TokenType;
@@ -88,6 +90,7 @@ public final class TextAreaElement extends StyledElement<TextAreaElement> {
     private Overflow renderedOverflow;
     private SyntaxHighlighter highlighter;
     private String highlightLanguage;
+    private SyntaxTheme highlightTheme;
     private TextChangeListener changeListener;
 
     /** Creates a new text area element with a default state. */
@@ -258,6 +261,30 @@ public final class TextAreaElement extends StyledElement<TextAreaElement> {
     }
 
     /**
+     * Enables syntax highlighting with the built-in highlighter and default theme.
+     *
+     * @param language the language identifier or alias (e.g. {@code java}, {@code css})
+     * @return this builder
+     */
+    public TextAreaElement highlighter(String language) {
+        return highlighter(RegexSyntaxHighlighter.defaults(), language);
+    }
+
+    /**
+     * Enables syntax highlighting with the built-in highlighter and a custom theme.
+     *
+     * @param language the language identifier or alias
+     * @param theme the token palette
+     * @return this builder
+     */
+    public TextAreaElement highlighter(String language, SyntaxTheme theme) {
+        this.highlighter = RegexSyntaxHighlighter.defaults();
+        this.highlightLanguage = language;
+        this.highlightTheme = Objects.requireNonNull(theme, "theme");
+        return this;
+    }
+
+    /**
      * Enables syntax highlighting of the content (clip mode only; wrapped
      * modes render unstyled). See {@link TextArea.Builder#highlighter}.
      *
@@ -268,6 +295,7 @@ public final class TextAreaElement extends StyledElement<TextAreaElement> {
     public TextAreaElement highlighter(SyntaxHighlighter highlighter, String language) {
         this.highlighter = highlighter;
         this.highlightLanguage = language;
+        this.highlightTheme = null;
         return this;
     }
 
@@ -507,7 +535,8 @@ public final class TextAreaElement extends StyledElement<TextAreaElement> {
             .block(buildBlock(context, isFocused));
 
         if (highlighter != null) {
-            builder.highlighter(highlighter, highlightLanguage, resolveSyntaxTheme(context));
+            SyntaxTheme effectiveTheme = highlightTheme != null ? highlightTheme : resolveSyntaxTheme(context);
+            builder.highlighter(highlighter, highlightLanguage, effectiveTheme);
         }
 
         TextArea widget = builder.build();

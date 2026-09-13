@@ -11,12 +11,12 @@ import org.junit.jupiter.api.Test;
 
 import dev.tamboui.buffer.Buffer;
 import dev.tamboui.layout.Rect;
+import dev.tamboui.style.Color;
 import dev.tamboui.style.Overflow;
 import dev.tamboui.style.Style;
 import dev.tamboui.terminal.Frame;
 import dev.tamboui.widgets.block.Block;
 import dev.tamboui.widgets.block.Borders;
-import dev.tamboui.widgets.syntax.RegexSyntaxHighlighter;
 import dev.tamboui.widgets.syntax.SyntaxTheme;
 import dev.tamboui.widgets.syntax.TokenType;
 
@@ -28,7 +28,7 @@ class TextAreaTest {
     @DisplayName("a configured highlighter styles tokens per span")
     void highlighterStylesTokens() {
         TextArea textArea = TextArea.builder()
-            .highlighter(RegexSyntaxHighlighter.defaults(), "java")
+            .highlighter("java")
             .build();
         TextAreaState state = new TextAreaState("class x = 1;");
         Buffer buffer = Buffer.empty(new Rect(0, 0, 20, 2));
@@ -43,12 +43,29 @@ class TextAreaTest {
     }
 
     @Test
+    @DisplayName("the convenience highlighter accepts a custom theme")
+    void convenienceHighlighterAcceptsCustomTheme() {
+        SyntaxTheme theme = SyntaxTheme.builder()
+            .token(TokenType.KEYWORD, Style.EMPTY.fg(Color.RED))
+            .build();
+        TextArea textArea = TextArea.builder()
+            .highlighter("java", theme)
+            .build();
+        TextAreaState state = new TextAreaState("class Example {}");
+        Buffer buffer = Buffer.empty(new Rect(0, 0, 20, 1));
+
+        textArea.render(buffer.area(), buffer, state);
+
+        assertThat(buffer.get(0, 0).style().fg()).contains(Color.RED);
+    }
+
+    @Test
     @DisplayName("highlighting applies to multi-line content with a trailing newline")
     void highlighterHandlesTrailingNewline() {
         // A trailing newline makes the state count one more (empty) line than
         // the highlighter emits; highlighting must still apply per line.
         TextArea textArea = TextArea.builder()
-            .highlighter(RegexSyntaxHighlighter.defaults(), "css")
+            .highlighter("css")
             .build();
         TextAreaState state = new TextAreaState("a {\n  color: red;\n}\n");
         Buffer buffer = Buffer.empty(new Rect(0, 0, 20, 4));
@@ -65,7 +82,7 @@ class TextAreaTest {
     @DisplayName("highlighting respects horizontal scroll offset")
     void highlighterRespectsScroll() {
         TextArea textArea = TextArea.builder()
-            .highlighter(RegexSyntaxHighlighter.defaults(), "java")
+            .highlighter("java")
             .build();
         TextAreaState state = new TextAreaState("abcdef \"str\"");
         // Induce horizontal scroll: cursor on the closing quote, 5-wide viewport

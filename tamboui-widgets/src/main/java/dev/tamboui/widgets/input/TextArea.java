@@ -23,6 +23,7 @@ import dev.tamboui.text.Line;
 import dev.tamboui.text.Span;
 import dev.tamboui.widget.StatefulWidget;
 import dev.tamboui.widgets.block.Block;
+import dev.tamboui.widgets.syntax.RegexSyntaxHighlighter;
 import dev.tamboui.widgets.syntax.SyntaxHighlighter;
 import dev.tamboui.widgets.syntax.SyntaxTheme;
 
@@ -536,6 +537,27 @@ public final class TextArea implements StatefulWidget<TextAreaState> {
         public Builder overflow(Overflow overflow) {
             this.overflow = overflow;
             return this;
+        }
+
+        /**
+         * Enables syntax highlighting with the built-in highlighter and default theme.
+         *
+         * @param language the language identifier or alias (e.g. {@code java}, {@code css})
+         * @return this builder
+         */
+        public Builder highlighter(String language) {
+            return highlighter(RegexSyntaxHighlighter.defaults(), language, SyntaxTheme.DEFAULTS);
+        }
+
+        /**
+         * Enables syntax highlighting with the built-in highlighter and a custom theme.
+         *
+         * @param language the language identifier or alias
+         * @param theme the token palette
+         * @return this builder
+         */
+        public Builder highlighter(String language, SyntaxTheme theme) {
+            return highlighter(RegexSyntaxHighlighter.defaults(), language, theme);
         }
 
         /**
