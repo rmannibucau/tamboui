@@ -161,7 +161,9 @@ public final class MarkdownView implements Widget {
         this.style = builder.style;
         this.styles = builder.styles;
         this.styleResolver = builder.styleResolver;
-        this.syntaxHighlighter = builder.syntaxHighlighter;
+        this.syntaxHighlighter = builder.syntaxHighlighter != null
+            ? builder.syntaxHighlighter
+            : RegexSyntaxHighlighter.defaults();
         this.syntaxTheme = builder.syntaxTheme;
         // Programmatic value wins; otherwise consult the resolver directly
         // (resolve() would fall back to the property's CLIP default, which is
@@ -411,7 +413,7 @@ public final class MarkdownView implements Widget {
         private Style style = Style.EMPTY;
         private MarkdownStyles styles = MarkdownStyles.DEFAULTS;
         private StylePropertyResolver styleResolver = StylePropertyResolver.empty();
-        private SyntaxHighlighter syntaxHighlighter = RegexSyntaxHighlighter.defaults();
+        private SyntaxHighlighter syntaxHighlighter;
         private SyntaxTheme syntaxTheme = SyntaxTheme.DEFAULTS;
         private Overflow overflow;
         private int scroll;

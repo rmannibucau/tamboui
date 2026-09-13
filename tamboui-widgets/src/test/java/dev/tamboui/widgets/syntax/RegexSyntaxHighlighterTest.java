@@ -92,6 +92,15 @@ class RegexSyntaxHighlighterTest {
     }
 
     @Test
+    @DisplayName("default highlighters reuse compiled built-in grammars")
+    void defaultHighlightersReuseBuiltInGrammars() {
+        RegexSyntaxHighlighter first = RegexSyntaxHighlighter.defaults();
+        RegexSyntaxHighlighter second = RegexSyntaxHighlighter.defaults();
+
+        assertThat(first.grammar("java")).isSameAs(second.grammar("java"));
+    }
+
+    @Test
     @DisplayName("matches a language by id and alias, case-insensitively")
     void resolvesAliases() {
         RegexSyntaxHighlighter hl = RegexSyntaxHighlighter.defaults();

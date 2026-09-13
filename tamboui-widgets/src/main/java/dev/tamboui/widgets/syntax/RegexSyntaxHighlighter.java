@@ -66,7 +66,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
      * @return the default highlighter
      */
     public static RegexSyntaxHighlighter defaults() {
-        return new Builder(false).withDefaults().build();
+        return new RegexSyntaxHighlighter(DefaultGrammarsHolder.GRAMMARS, DEFAULT_MAX_LINE_LENGTH);
     }
 
     /**
@@ -297,7 +297,7 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
 
         private Builder(boolean seedDefaults) {
             if (seedDefaults) {
-                withDefaults();
+                grammars.addAll(DefaultGrammarsHolder.GRAMMARS);
             }
         }
 
@@ -326,24 +326,6 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
             return this;
         }
 
-        private Builder withDefaults() {
-            add(javaGrammar());
-            add(kotlinGrammar());
-            add(javascriptGrammar());
-            add(typescriptGrammar());
-            add(pythonGrammar());
-            add(jsonGrammar());
-            add(xmlGrammar());
-            add(cssGrammar());
-            add(bashGrammar());
-            add(yamlGrammar());
-            add(propertiesGrammar());
-            add(sqlGrammar());
-            add(goGrammar());
-            add(rustGrammar());
-            return this;
-        }
-
         /**
          * Builds the {@link RegexSyntaxHighlighter}.
          *
@@ -352,6 +334,33 @@ public final class RegexSyntaxHighlighter implements SyntaxHighlighter {
         public RegexSyntaxHighlighter build() {
             return new RegexSyntaxHighlighter(grammars, maxLineLength);
         }
+    }
+
+    private static final class DefaultGrammarsHolder {
+        private static final List<Grammar> GRAMMARS = createDefaultGrammars();
+
+        private DefaultGrammarsHolder() {
+        }
+    }
+
+    private static List<Grammar> createDefaultGrammars() {
+        List<Grammar> grammars = new ArrayList<>();
+        Collections.addAll(grammars,
+            javaGrammar(),
+            kotlinGrammar(),
+            javascriptGrammar(),
+            typescriptGrammar(),
+            pythonGrammar(),
+            jsonGrammar(),
+            xmlGrammar(),
+            cssGrammar(),
+            bashGrammar(),
+            yamlGrammar(),
+            propertiesGrammar(),
+            sqlGrammar(),
+            goGrammar(),
+            rustGrammar());
+        return Collections.unmodifiableList(grammars);
     }
 
     // Helpers shared by the built-in grammars.

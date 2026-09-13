@@ -16,6 +16,7 @@ import dev.tamboui.terminal.Frame;
 import dev.tamboui.toolkit.element.RenderContext;
 import dev.tamboui.toolkit.element.Size;
 import dev.tamboui.toolkit.element.StyledElement;
+import dev.tamboui.widgets.syntax.RegexSyntaxHighlighter;
 import dev.tamboui.widgets.syntax.SyntaxHighlighter;
 import dev.tamboui.widgets.syntax.SyntaxTheme;
 
@@ -44,8 +45,8 @@ public final class MarkdownElement extends StyledElement<MarkdownElement> {
 
     private String source;
     private MarkdownStyles styles;
-    private SyntaxHighlighter syntaxHighlighter;
-    private SyntaxTheme syntaxTheme;
+    private SyntaxHighlighter syntaxHighlighter = RegexSyntaxHighlighter.defaults();
+    private SyntaxTheme syntaxTheme = SyntaxTheme.DEFAULTS;
     private Overflow overflow;
     private int scroll;
 
@@ -180,18 +181,14 @@ public final class MarkdownElement extends StyledElement<MarkdownElement> {
             .source(source)
             .style(effectiveStyle)
             .styleResolver(resolver)
+            .syntaxHighlighter(syntaxHighlighter)
+            .syntaxTheme(syntaxTheme)
             .scroll(scroll);
         if (styles != null) {
             b.styles(styles);
         }
         if (overflow != null) {
             b.overflow(overflow);
-        }
-        if (syntaxHighlighter != null) {
-            b.syntaxHighlighter(syntaxHighlighter);
-        }
-        if (syntaxTheme != null) {
-            b.syntaxTheme(syntaxTheme);
         }
         return b.build();
     }
